@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: owncloud
+  labels:
+    app: owncloud
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: owncloud
+    tier: frontend
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: oc-pv-claim
+  labels:
+    app: owncloud
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: owncloud
+  labels:
+    app: owncloud
+spec:
+  selector:
+    matchLabels:
+      app: owncloud
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: owncloud
+        tier: frontend
+    spec:
+      containers:
+      - image: owncloud:latest
+        name: owncloud
+        env:
+        - name: OWNCLOUD_DB_HOST
+          value: owncloud-mysql
+        - name: OWNCLOUD_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        ports:
+        - containerPort: 80
+          name: joomla
+        volumeMounts:
+        - name: joomla-persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: joomla-persistent-storage
+        persistentVolumeClaim:
+          claimName: oc-pv-claim
+
