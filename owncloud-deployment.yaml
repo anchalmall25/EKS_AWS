@@ -57,12 +57,12 @@ spec:
               key: password
         ports:
         - containerPort: 80
-          name: joomla
+          name: owncloud
         volumeMounts:
-        - name: joomla-persistent-storage
+        - name: owncloud-persistent-storage
           mountPath: /var/www/html
       volumes:
-      - name: joomla-persistent-storage
+      - name: oc-persistent-storage
         persistentVolumeClaim:
           claimName: oc-pv-claim
 
